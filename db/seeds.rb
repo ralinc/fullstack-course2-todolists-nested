@@ -1,56 +1,27 @@
-Profile.delete_all
-User.delete_all
-TodoItem.delete_all
-TodoList.delete_all
+today = Date.today
+two_days_ago = Date.today - 2.days
+three_days_ago = Date.today - 3.days
+dates = [today, two_days_ago, three_days_ago]
 
-profiles = [{
-  first_name: "Carly",
-  last_name: "Fiorina",
-  birth_year: 1954,
-  gender: "female"
-}, {
-  first_name: "Donald",
-  last_name: "Trump",
-  birth_year: 1946,
-  gender: "male"
-}, {
-  first_name: "Ben",
-  last_name: "Carson",
-  birth_year: 1951,
-  gender: "male"
-},{
-  first_name: "Hillary",
-  last_name: "Clinton",
-  birth_year: 1947,
-  gender: "female"
-}]
+User.destroy_all
+TodoList.destroy_all
 
-users = profiles.map {|profile|  { username: profile[:last_name], password_digest: "12345"} }
+100.times { |index| TodoList.create! list_name: "List #{index}", list_due_date: dates.sample }
 
-init_date = Date.today + 1.year
+TodoList.all.each do |list|
+  list.todo_items.create! [
+    { title: "Task 1", due_date: dates.sample, description: "very important task TEST", completed: false },
+    { title: "Task 2", due_date: dates.sample, description: "do something else TEST", completed: true},
+    { title: "Task 3", due_date: dates.sample, description: "learn Action Pack TEST", completed: true}
+  ]
+end
 
-4.times do |i|
-  user = users[i]
-  profile = profiles[i]
+users = User.create! [
+  { username: "jim", password: "abc123" },
+  { username: "rich", password: "123abc" }
+]
 
-  list = TodoList.create! ({
-    list_name: "#{user[:username]}'s tasks",
-    list_due_date: init_date
-  })
-
-  5.times do |j|
-    item = TodoItem.create! ({
-      due_date: init_date,
-      title: "item ##{(i * 5) + j + 1}",
-      description: "from list [#{list[:list_name]}]",
-      completed: false
-    })
-
-    list.todo_items << item
-  end
-
-  user = User.create! users[i]
-  user.profile = Profile.create! profile
-  user.todo_lists << list
-  user.save
+TodoList.all.each do |list|
+  list.user = users.sample
+  list.save!
 end
